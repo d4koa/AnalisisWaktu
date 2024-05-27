@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Bar Analysis</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 2px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .button-container button {
+            background-color: #007BFF;
+            color: #fff;
+            width: 115px;
+        }
+
+        .mt-5 {
+            text-align: center;
+        }
+
+        /* span {
+            background-color: #007BFF;
+            color: #fff;
+            border: 0.5px solid black;
+            border-radius: 20%;
+        } */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Analisis <span>Waktu</span></h1>
+        <br>
+        <form id="analyze-form">
+            <div class="form-group">
+                <label for="number">Masukkan angka <span>n</span>:</label>
+                <input type="number" class="form-control" id="number" name="number" required>
+            </div>
+            <div class="button-container">
+                <button type="submit" class="btn btn-primary">Analisis</button>
+                <button type="button" id="reset-button" class="btn btn-secondary">Ulang</button>
+                <button type="button" id="close-button" class="btn btn-danger">Keluar</button>
+            </div>
+        </form>
+        <div class="progress mt-3" style="height: 30px;">
+            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;">0%</div>
+        </div>
+        <div class="mt-3" id="result"></div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#analyze-form').on('submit', function(event) {
+                event.preventDefault();
+                var number = $('#number').val();
+                $('#progress-bar').css('width', '0%').text('0%');
+                $('#result').text('');
+                var progress = 0;
+                var interval = setInterval(function() {
+                    progress += 100 / number;
+                    if (progress > 100) progress = 100;
+                    $('#progress-bar').css('width', progress + '%').text(Math.round(progress) + '%');
+                }, 100);
+
+                $.ajax({
+                    url: '/analyze',
+                    method: 'POST',
+                    data: { number: number },
+                    success: function(response) {
+                        clearInterval(interval);
+                        $('#progress-bar').css('width', '100%').text('100%');
+                        $('#result').html('<p>Waktu yang dibutuhkan: ' + response.elapsed_time.toFixed(4) + ' detik</p>');
+                    },
+                    error: function() {
+                        clearInterval(interval);
+                        $('#result').text('Terjadi kesalahan saat menganalisis data.');
+                    }
+                });
+            });
+
+            $('#reset-button').on('click', function() {
+                $('#number').val('');
+                $('#progress-bar').css('width', '0%').text('0%');
+                $('#result').text('');
+            });
+
+            $('#close-button').on('click', function() {
+                window.close();
+            });
+        });
+    </script>
+</body>
+</html>
